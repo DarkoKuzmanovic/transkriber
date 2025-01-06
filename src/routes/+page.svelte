@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { Progress } from "$lib/components/ui/progress";
+  import { Skeleton } from "$lib/components/ui/skeleton";
   import { marked } from "marked";
 
   let audioFile = null;
@@ -13,39 +14,32 @@
 
   const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
+  function toggleDarkMode() {
+    darkMode = !darkMode;
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }
+
   async function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file && file.type === "audio/mpeg") {
       audioFile = file;
 
-      // Create a new audio element if it doesn't exist
       if (!audioElement) {
         audioElement = new Audio();
       }
-
-      // Revoke previous URL if it exists to prevent memory leaks
       if (audioElement.src) {
         URL.revokeObjectURL(audioElement.src);
       }
 
       const url = URL.createObjectURL(file);
       audioElement.src = url;
-
-      // Set up event listeners
-      audioElement.addEventListener("loadedmetadata", () => {
-        console.log("Audio metadata loaded, duration:", audioElement.duration);
-      });
-
-      audioElement.addEventListener("error", (e) => {
-        console.error("Error loading audio:", e);
-      });
-
-      // Force the audio to load
-      try {
-        await audioElement.load();
-      } catch (error) {
-        console.error("Error loading audio:", error);
-      }
+      await audioElement.load();
     }
   }
 
@@ -66,7 +60,24 @@
         reader.readAsDataURL(audioFile);
       });
 
-      // Call Gemini API with the audio file included
+      const requestBody = {
+        contents: [
+          {
+            parts: [
+              {
+                text: "Generate audio diarization, including transcriptions and speaker information for each transcription, for this interview. Organize the transcription by the time they happened.",
+              },
+              {
+                inline_data: {
+                  mime_type: "audio/mpeg",
+                  data: base64Audio,
+                },
+              },
+            ],
+          },
+        ],
+      };
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_API_KEY}`,
         {
@@ -74,23 +85,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: "Generate audio diarization, including transcriptions and speaker information for each transcription, for this interview. Organize the transcription by the time they happened.",
-                  },
-                  {
-                    inline_data: {
-                      mime_type: "audio/mpeg",
-                      data: base64Audio,
-                    },
-                  },
-                ],
-              },
-            ],
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -144,7 +139,7 @@
 <div class="container mx-auto p-4">
   <Card class="w-full">
     <CardHeader>
-      <CardTitle>Transkriber</CardTitle>
+      <CardTitle class="font-serif text-3xl">Transkriber</CardTitle>
     </CardHeader>
     <CardContent>
       <div class="grid gap-4">
@@ -167,11 +162,27 @@
         </div>
 
         <Button on:click={transcribeAudio} disabled={!audioFile || isTranscribing}>
-          {isTranscribing ? "Transcribing..." : "Transcribe Audio"}
+          {#if isTranscribing}
+            Transcribing...
+          {:else}
+            Transcribe
+          {/if}
         </Button>
 
         {#if isTranscribing}
-          <Progress value={progress} />
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              <span class="text-sm">Transcribing...</span>
+              <Progress value={progress} />
+            </div>
+            <div class="space-y-3">
+              <Skeleton class="h-4 w-[250px]" />
+              <Skeleton class="h-4 w-[200px]" />
+              <Skeleton class="h-4 w-[300px]" />
+              <Skeleton class="h-4 w-[280px]" />
+              <Skeleton class="h-4 w-[270px]" />
+            </div>
+          </div>
         {/if}
 
         {#if transcription}
@@ -200,6 +211,16 @@
   </Card>
 </div>
 
+<footer class="container mx-auto p-4 mt-8 text-center text-sm text-muted-foreground">
+  <div class="flex items-center justify-center gap-2">
+    <span>© 2024 Transkriber</span>
+    <span>•</span>
+    <a href="https://github.com/DarkoKuzmanovic/transkriber" class="hover:text-foreground transition-colors">GitHub</a>
+    <span>•</span>
+    <span>v{import.meta.env.VITE_APP_VERSION || "0.5.0"}</span>
+  </div>
+</footer>
+
 <style>
   :global(.scrollbar) {
     scrollbar-width: thin;
@@ -221,7 +242,8 @@
 
   :global(h1, h2, h3, h4, h5, h6) {
     margin: 1em 0 0.5em 0;
-    font-weight: bold;
+    font-weight: normal;
+    font-family: theme("fontFamily.serif");
   }
 
   :global(p) {

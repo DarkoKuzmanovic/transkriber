@@ -1,38 +1,54 @@
-# sv
+# Transkriber
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A simple web application that transcribes MP3 audio files using Google's Gemini AI. Built with SvelteKit and TailwindCSS.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Upload MP3 audio files
+- Transcribe audio using Gemini AI
+- View transcriptions in plain text or markdown format
+- Export transcriptions as TXT or MD files
+- Modern UI with dark mode support
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
 
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+npm install
 ```
 
-## Developing
+3. Create a `.env` file in the root directory and add your Google API key:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+```
+VITE_GOOGLE_API_KEY=your_api_key_here
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
 ## Building
 
-To create a production version of your app:
+To create a production version:
 
 ```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+Preview the production build with:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run preview
+```
+
+## Technologies Used
+
+- SvelteKit
+- TailwindCSS
+- Google Gemini AI
+- Marked (for Markdown parsing)
+- Bits UI (for UI components)
