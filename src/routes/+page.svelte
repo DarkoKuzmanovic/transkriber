@@ -1,6 +1,6 @@
 <script>
   import { Button } from "$lib/components/ui/button";
-  import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
+  import { Card, CardContent } from "$lib/components/ui/card";
   import { Progress } from "$lib/components/ui/progress";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { marked } from "marked";
@@ -136,82 +136,104 @@
   }
 </script>
 
-<div class="container mx-auto p-4">
-  <Card class="w-full">
-    <CardHeader>
-      <CardTitle class="font-serif text-3xl">Transkriber</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div class="grid gap-4">
-        <div class="flex flex-col gap-2">
-          <input
-            type="file"
-            accept="audio/mpeg"
-            on:change={handleFileUpload}
-            class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-          />
+<div class="container mx-auto px-4">
+  <div class="max-w-2xl mx-auto">
+    <div class="space-y-8">
+      <!-- Upload Section -->
+      <Card>
+        <CardContent class="pt-6">
+          <div class="space-y-4">
+            <h2 class="font-serif text-xl">Upload Audio</h2>
+            <p class="text-sm text-muted-foreground">Upload an MP3 file to get started with transcription.</p>
+            <input
+              type="file"
+              accept="audio/mpeg"
+              on:change={handleFileUpload}
+              class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:transition-colors"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-          {#if audioFile}
-            <div class="flex flex-col gap-2">
+      <!-- Audio Player -->
+      {#if audioFile}
+        <Card>
+          <CardContent class="pt-6">
+            <div class="space-y-4">
+              <h2 class="font-serif text-xl">Preview Audio</h2>
               <audio bind:this={audioElement} controls preload="metadata" class="w-full">
                 <source src={URL.createObjectURL(audioFile)} type="audio/mpeg" />
                 Your browser does not support the audio element.
               </audio>
             </div>
-          {/if}
-        </div>
+          </CardContent>
+        </Card>
+      {/if}
 
-        <Button on:click={transcribeAudio} disabled={!audioFile || isTranscribing}>
+      <!-- Transcribe Button -->
+      <div class="flex justify-center">
+        <Button class="px-8" size="lg" on:click={transcribeAudio} disabled={!audioFile || isTranscribing}>
           {#if isTranscribing}
             Transcribing...
           {:else}
-            Transcribe
+            Start Transcription
           {/if}
         </Button>
-
-        {#if isTranscribing}
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <span class="text-sm">Transcribing...</span>
-              <Progress value={progress} />
-            </div>
-            <div class="space-y-3">
-              <Skeleton class="h-4 w-[250px]" />
-              <Skeleton class="h-4 w-[200px]" />
-              <Skeleton class="h-4 w-[300px]" />
-              <Skeleton class="h-4 w-[280px]" />
-              <Skeleton class="h-4 w-[270px]" />
-            </div>
-          </div>
-        {/if}
-
-        {#if transcription}
-          <div class="flex gap-2 items-center">
-            <span class="text-sm">View as:</span>
-            <Button variant="outline" size="sm" on:click={togglePreview}>
-              {showMarkdown ? "Plain Text" : "Markdown"}
-            </Button>
-          </div>
-
-          <div class="mt-4 p-4 bg-muted rounded-lg whitespace-pre-wrap max-h-96 overflow-y-auto scrollbar">
-            {#if showMarkdown}
-              {@html getMarkdownPreview()}
-            {:else}
-              {transcription}
-            {/if}
-          </div>
-
-          <div class="flex gap-2">
-            <Button variant="outline" on:click={() => exportTranscription("txt")}>Export as TXT</Button>
-            <Button variant="outline" on:click={() => exportTranscription("md")}>Export as MD</Button>
-          </div>
-        {/if}
       </div>
-    </CardContent>
-  </Card>
+
+      <!-- Loading State -->
+      {#if isTranscribing}
+        <Card>
+          <CardContent class="pt-6">
+            <div class="space-y-6">
+              <div class="space-y-2">
+                <h2 class="font-serif text-xl">Processing...</h2>
+                <Progress value={progress} class="h-2" />
+              </div>
+              <div class="space-y-3">
+                <Skeleton class="h-4 w-[250px]" />
+                <Skeleton class="h-4 w-[200px]" />
+                <Skeleton class="h-4 w-[300px]" />
+                <Skeleton class="h-4 w-[280px]" />
+                <Skeleton class="h-4 w-[270px]" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      {/if}
+
+      <!-- Transcription Result -->
+      {#if transcription}
+        <Card>
+          <CardContent class="pt-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h2 class="font-serif text-xl">Transcription</h2>
+                <div class="flex items-center gap-2">
+                  <Button variant="outline" size="sm" on:click={togglePreview}>
+                    {showMarkdown ? "Plain Text" : "Markdown"}
+                  </Button>
+                  <Button variant="outline" size="sm" on:click={() => exportTranscription("txt")}>Export TXT</Button>
+                  <Button variant="outline" size="sm" on:click={() => exportTranscription("md")}>Export MD</Button>
+                </div>
+              </div>
+
+              <div class="mt-4 p-4 bg-muted rounded-lg whitespace-pre-wrap max-h-[500px] overflow-y-auto scrollbar">
+                {#if showMarkdown}
+                  {@html getMarkdownPreview()}
+                {:else}
+                  {transcription}
+                {/if}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      {/if}
+    </div>
+  </div>
 </div>
 
-<footer class="container mx-auto p-4 mt-8 text-center text-sm text-muted-foreground">
+<footer class="container mx-auto px-4 py-8 mt-8 text-center text-sm text-muted-foreground border-t">
   <div class="flex items-center justify-center gap-2">
     <span>© 2024 Transkriber</span>
     <span>•</span>

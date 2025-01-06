@@ -31,9 +31,19 @@
 </script>
 
 <div class={`min-h-screen bg-background ${darkMode ? "dark" : ""}`}>
-  <div class="absolute top-4 right-4 flex items-center gap-2">
-    <span class="text-sm">Theme</span>
-    <Switch checked={darkMode} onCheckedChange={toggleDarkMode} />
-  </div>
-  <slot />
+  <header class="border-b">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="font-serif text-xl">Transkriber</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Beta</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-muted-foreground">Theme</span>
+        <Switch checked={darkMode} onCheckedChange={toggleDarkMode} />
+      </div>
+    </div>
+  </header>
+  <main class="py-8">
+    <slot />
+  </main>
 </div>
